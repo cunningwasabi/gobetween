@@ -16,10 +16,11 @@ import (
  */
 type Backend struct {
 	Target
-	Priority int          `json:"priority"`
-	Weight   int          `json:"weight"`
-	Sni      string       `json:"sni,omitempty"`
-	Stats    BackendStats `json:"stats"`
+	Priority      int          `json:"priority"`
+	Weight        int          `json:"weight"`
+	Sni           string       `json:"sni,omitempty"`
+	Stats         BackendStats `json:"stats"`
+	DrainSessions bool         `json:"drain_sessions"`
 }
 
 /**
@@ -67,6 +68,6 @@ func (this *Backend) Address() string {
  * String conversion
  */
 func (this Backend) String() string {
-	return fmt.Sprintf("{%s p=%d,w=%d,l=%t,a=%d}",
-		this.Address(), this.Priority, this.Weight, this.Stats.Live, this.Stats.ActiveConnections)
+	return fmt.Sprintf("{%s p=%d,w=%d,l=%t,a=%d,ds=%t}",
+		this.Address(), this.Priority, this.Weight, this.Stats.Live, this.Stats.ActiveConnections, this.DrainSessions)
 }

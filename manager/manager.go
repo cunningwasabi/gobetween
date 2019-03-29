@@ -257,6 +257,7 @@ func Stats(name string) interface{} {
  * TODO: make validation better
  */
 func prepareConfig(name string, server config.Server, defaults config.ConnectionOptions) (config.Server, error) {
+	log := logging.For("manager/prepareConfig")
 
 	/* ----- Prerequisites ----- */
 
@@ -468,7 +469,18 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 	}
 
 	/* Balance */
-	switch server.Balance {
+
+	if server.Balance == nil {
+		log.Warn("No [server." + name + ".balance] section, choosing 'weight' balance method")
+		server.Balance = &config.BalanceConfig{
+			Kind: "weight",
+		}
+	}
+
+	log.Debug("[server." + name + ".balance] is type " + server.Balance.Kind)
+	switch server.Balance.Kind {
+	case "":
+		server.Balance.Kind = "weight"
 	case
 		"weight",
 		"leastconn",
@@ -477,10 +489,20 @@ func prepareConfig(name string, server config.Server, defaults config.Connection
 		"priority",
 		"iphash1",
 		"iphash":
-	case "":
-		server.Balance = "weight"
+	case "stickypriority":
+		log.Info("[server." + name + "] using StickyPriority balance method, sessions will stick to the initial backend until idle timeout")
+		if server.Balance.StickyPrioritySessionIdleExpiry == "" {
+			server.Balance.StickyPrioritySessionIdleExpiry = "1h"
+			log.Warn("[server."+name+".balance] StickyPrioritySessionIdleExpiry not defined, using ", server.Balance.StickyPrioritySessionIdleExpiry)
+		}
+		if server.Balance.StickyPriorityRememberedSessions == 0 {
+			server.Balance.StickyPriorityRememberedSessions = 1000
+			log.Warn("[server."+name+".balance] StickyPriorityRememberedSessions not defined, using ", server.Balance.StickyPriorityRememberedSessions)
+		}
+		log.Info("[server."+name+".balance] StickyPriority session idle expiry: ", server.Balance.StickyPrioritySessionIdleExpiry)
+		log.Info("[server."+name+".balance] StickyPriority remembered sessions: ", server.Balance.StickyPriorityRememberedSessions)
 	default:
-		return config.Server{}, errors.New("Not supported balance type " + server.Balance)
+		return config.Server{}, errors.New("Not supported balance type " + server.Balance.Kind)
 	}
 
 	/* Discovery */

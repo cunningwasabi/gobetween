@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	DEFAULT_BACKEND_PATTERN = `^(?P<host>\S+):(?P<port>\d+)(\sweight=(?P<weight>\d+))?(\spriority=(?P<priority>\d+))?(\ssni=(?P<sni>[^\s]+))?$`
+	DEFAULT_BACKEND_PATTERN = `^(?P<host>\S+):(?P<port>\d+)(\sweight=(?P<weight>\d+))?(\spriority=(?P<priority>\d+))?(\sdrainsessions=(?P<drainsessions>(true|false)))?(\ssni=(?P<sni>[^\s]+))?$`
 )
 
 /**
@@ -62,14 +62,20 @@ func ParseBackend(line string, pattern string) (*core.Backend, error) {
 		priority = 1
 	}
 
+	drainsessions, err := strconv.ParseBool(result["drainsessions"])
+	if err != nil {
+		drainsessions = false
+	}
+
 	backend := core.Backend{
 		Target: core.Target{
 			Host: result["host"],
 			Port: result["port"],
 		},
-		Weight:   weight,
-		Sni:      result["sni"],
-		Priority: priority,
+		Weight:        weight,
+		Sni:           result["sni"],
+		Priority:      priority,
+		DrainSessions: drainsessions,
 		Stats: core.BackendStats{
 			Live: true,
 		},

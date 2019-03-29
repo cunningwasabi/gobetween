@@ -30,14 +30,15 @@ func init() {
 	typeRegistry["iphash1"] = reflect.TypeOf(Iphash1Balancer{})
 	typeRegistry["leastbandwidth"] = reflect.TypeOf(LeastbandwidthBalancer{})
 	typeRegistry["priority"] = reflect.TypeOf(PriorityBalancer{})
+	typeRegistry["stickypriority"] = reflect.TypeOf(StickyPriorityBalancer{})
 }
 
 /**
  * Create new Balancer based on balancing strategy
  * Wrap it in middlewares if needed
  */
-func New(sniConf *config.Sni, balance string) core.Balancer {
-	balancer := reflect.New(typeRegistry[balance]).Elem().Addr().Interface().(core.Balancer)
+func New(sniConf *config.Sni, cfg config.BalanceConfig) core.Balancer {
+	balancer := reflect.New(typeRegistry[cfg.Kind]).Elem().Addr().Interface().(core.Balancer)
 
 	if sniConf == nil {
 		return balancer

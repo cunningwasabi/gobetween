@@ -95,8 +95,8 @@ type Server struct {
 	// tcp | udp | tls
 	Protocol string `toml:"protocol" json:"protocol"`
 
-	// weight | leastconn | roundrobin
-	Balance string `toml:"balance" json:"balance"`
+	// Balance configuration
+	Balance *BalanceConfig `toml:"balance" json:"balance"`
 
 	// Optional configuration for server name indication
 	Sni *Sni `toml:"sni" json:"sni"`
@@ -184,6 +184,15 @@ type Udp struct {
 type AccessConfig struct {
 	Default string   `toml:"default" json:"default"`
 	Rules   []string `toml:"rules" json:"rules"`
+}
+
+/**
+ * Balance configuration
+ */
+type BalanceConfig struct {
+	Kind                             string `toml:"kind" json:"kind"`
+	StickyPrioritySessionIdleExpiry  string `toml:"StickyPrioritySessionIdleExpiry" json:"StickyPrioritySessionIdleExpiry"`
+	StickyPriorityRememberedSessions uint64 `toml:"StickyPriorityRememberedSessions" json:"StickyPriorityRememberedSessions"`
 }
 
 /**
